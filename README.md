@@ -41,8 +41,8 @@ dependencies:
   - { label: "Teslemetry", monitor: teslemetry_api }
   - { label: "Anthropic", monitor: anthropic_api }
 profiles:
-  - { name: James, entity: switch.james_devices_paused }
-  - { name: Henry, entity: switch.henrys_devices_paused }
+  - { name: "James's Devices", entity: switch.james_devices_paused }
+  - { name: "Henry's Devices", entity: switch.henrys_devices_paused }
 ```
 
 | Option | Default | Description |
@@ -53,9 +53,12 @@ profiles:
 | `wan_monitor` | — | Kuma monitor slug; drives uptime, streak, and the down banner |
 | `latency` | `[]` | `{label, monitor}` rows for the Register |
 | `dependencies` | `[]` | `{label, monitor}` chips for the dependency strip |
-| `profiles` | `[]` | `{name, entity}` eero profile pause switches |
+| `profiles` | `[]` | `{name, entity}` eero profile pause switches; `name` is shown exactly as written |
 | `history_days` | `30` | History window requested (bounded by your recorder retention) |
+| `router_uptime_entity` | `sensor.eero_uptime` | Router uptime sensor (row hidden if the entity doesn't exist) |
+| `backup_active_entity` | `binary_sensor.internet_backup_active` | LTE-backup-active binary sensor |
+| `mesh_logo` | eero brand logo | Masthead-right image; set `""` to hide it |
 
 ## Versioning
 
-Home Assistant CalVer: `YYYY.M.PATCH`. Current: **2026.8.2**.
+Home Assistant CalVer: `YYYY.M.PATCH`. Current: **2026.8.3**.

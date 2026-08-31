@@ -5,7 +5,7 @@
  * https://github.com/LoneWolf345/network-ledger-card
  */
 
-const NLC_VERSION = "2026.8.2";
+const NLC_VERSION = "2026.8.3";
 
 const INK = "#3a2d1f", PAPER = "#f3e7d3", TAN = "#a3876a", BROWN = "#7a6248",
   TERRA = "#c65f38", GREEN = "#4d7a52", AMBERC = "#b58a2e", DOT = "#cfb894";
@@ -71,6 +71,9 @@ class NetworkLedgerCard extends HTMLElement {
       dependencies: [],
       profiles: [],
       history_days: 30,
+      router_uptime_entity: "sensor.eero_uptime",
+      backup_active_entity: "binary_sensor.internet_backup_active",
+      mesh_logo: "https://brands.home-assistant.io/_/eero/logo.png",
       ...config,
     };
     this._sig = "";
@@ -86,7 +89,7 @@ class NetworkLedgerCard extends HTMLElement {
     const watch = [
       `sensor.${c.prefix}_status`, `sensor.${c.prefix}_download_speed`, `sensor.${c.prefix}_upload_speed`,
       `sensor.${c.prefix}_data_usage_day`, `sensor.${c.prefix}_data_usage_month`,
-      "binary_sensor.internet_backup_active", `switch.${c.prefix}_backup_internet_enabled`, "sensor.eero_uptime",
+      c.backup_active_entity, `switch.${c.prefix}_backup_internet_enabled`, c.router_uptime_entity,
     ];
     for (const l of [...c.latency, ...c.dependencies]) watch.push(`sensor.${l.monitor}_response_time`, `sensor.${l.monitor}_status`);
     for (const p of c.profiles) watch.push(p.entity);
@@ -165,9 +168,9 @@ class NetworkLedgerCard extends HTMLElement {
     const up = this._num(`sensor.${c.prefix}_upload_speed`);
     const usageDay = this._st(`sensor.${c.prefix}_data_usage_day`);
     const usageMon = this._st(`sensor.${c.prefix}_data_usage_month`);
-    const routerUp = this._num("sensor.eero_uptime");
+    const routerUp = this._num(c.router_uptime_entity);
     const backupSw = this._st(`switch.${c.prefix}_backup_internet_enabled`);
-    const backupActive = this._st("binary_sensor.internet_backup_active");
+    const backupActive = this._st(c.backup_active_entity);
     const nodes = this._nodes || [];
     let totalClients = 0;
     for (const n of nodes) totalClients += this._num(n.clients) || 0;
@@ -185,7 +188,7 @@ class NetworkLedgerCard extends HTMLElement {
     if (backupSw) {
       const active = backupActive && backupActive.state === "on";
       lteChip = `<span style="width:1px;height:24px;background:rgba(243,231,211,.3)"></span>
-        <span class="chip" data-ent="${backupActive ? "binary_sensor.internet_backup_active" : `switch.${c.prefix}_backup_internet_enabled`}" style="font-size:calc(11*var(--px));font-weight:700;letter-spacing:1px;color:${active ? "#e88b6a" : "#d9a441"}">LTE · ${active ? "CARRYING THE HOUSE" : "STANDBY"}</span>`;
+        <span class="chip" data-ent="${esc(backupActive ? c.backup_active_entity : `switch.${c.prefix}_backup_internet_enabled`)}" style="font-size:calc(11*var(--px));font-weight:700;letter-spacing:1px;color:${active ? "#e88b6a" : "#d9a441"}">LTE · ${active ? "CARRYING THE HOUSE" : "STANDBY"}</span>`;
     }
 
     /* register rows */
@@ -213,7 +216,7 @@ class NetworkLedgerCard extends HTMLElement {
     if (usageMon) regRows += row("Month to date", fmtBytes(usageMon.state), usageMon.entity_id);
     regRows += row("Devices", String(totalClients), nodes[0]?.clients);
     for (const l of lat.slice(0, 2)) regRows += row(esc(l.label), l.bad ? "✖ down" : `${r0(l.v)} ms`, l.ent, l.bad ? `color:${TERRA}` : "");
-    for (const p of profs) regRows += row(`${esc(p.name)}'s wire`, p.known ? (p.paused ? "✖ paused" : "✓ active") : "—", p.ent, p.paused ? `color:${TERRA}` : `color:${GREEN}`);
+    for (const p of profs) regRows += row(esc(p.name), p.known ? (p.paused ? "✖ paused" : "✓ active") : "—", p.ent, p.paused ? `color:${TERRA}` : `color:${GREEN}`);
 
     let meshRows = "";
     for (const n of nodes) {
@@ -222,7 +225,7 @@ class NetworkLedgerCard extends HTMLElement {
       const good = st?.state === "green";
       meshRows += row(`<span style="color:${INK}">${nodeGlyph(n.model)}</span>${esc(n.name)}`, `<span style="color:${good ? GREEN : TERRA}">●</span> ${r0(cl)}`, n.status);
     }
-    if (routerUp != null) meshRows += row("Router up", fmtDur(routerUp / 86400), "sensor.eero_uptime");
+    if (routerUp != null) meshRows += row("Router up", fmtDur(routerUp / 86400), c.router_uptime_entity);
 
     const depStrip = deps.map((d) => `<span class="dep" data-ent="${esc(d.ent)}" style="font-size:calc(11*var(--px));color:${BROWN}"><span style="color:${d.bad ? TERRA : GREEN}">${d.bad ? "✖" : "✓"}</span> ${esc(d.label)} <b class="serif" style="font-size:calc(12*var(--px));color:${d.bad ? TERRA : INK}">${d.bad ? "down" : r0(d.v) + " ms"}</b></span>`).join("");
 
@@ -254,7 +257,7 @@ class NetworkLedgerCard extends HTMLElement {
       <div class="serif" style="font-size:calc(24*var(--px));font-weight:700">${esc(c.title)}</div>
       <div style="font-size:max(7px,calc(9*var(--px)));font-weight:700;letter-spacing:calc(3*var(--px));color:${TAN};margin-top:calc(2*var(--px))">${date}</div>
     </div>
-    <img src="https://brands.home-assistant.io/_/eero/logo.png" style="height:calc(22*var(--px));max-width:calc(80*var(--px));object-fit:contain;opacity:.85">
+    ${c.mesh_logo ? `<img src="${esc(c.mesh_logo)}" style="height:calc(22*var(--px));max-width:calc(80*var(--px));object-fit:contain;opacity:.85">` : `<span style="width:calc(80*var(--px))"></span>`}
   </div>
   <div style="width:100%;height:2px;background:${INK};margin-top:calc(10*var(--px))"></div>
   <div style="display:flex;justify-content:space-around;align-items:center;margin-top:calc(14*var(--px))">
