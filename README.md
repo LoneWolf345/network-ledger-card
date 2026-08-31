@@ -2,6 +2,10 @@
 
 An editorial, almanac-style internet & network health panel for Home Assistant — a companion to the [Almanac Weather Card](https://github.com/LoneWolf345/almanac-weather-card). Sand paper, serif figures, dotted-leader ledger rows.
 
+<img src="docs/network-ledger.png" width="420" alt="The Network Ledger card showing live uptime, speeds, register, mesh, and dependency rows">
+
+*A live card — real uptime from recorded history, eero speeds and mesh, Uptime Kuma latency and dependency checks.*
+
 ## What it shows
 
 - **Uptime & incident streak** — twin lead figures computed **live from Home Assistant's recorded history** of an Uptime Kuma WAN monitor. Honest by design: the fine print shows the actual minutes lost and the real measurement window; no fabricated nines.
