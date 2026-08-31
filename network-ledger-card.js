@@ -5,7 +5,7 @@
  * https://github.com/LoneWolf345/network-ledger-card
  */
 
-const NLC_VERSION = "2026.8.1";
+const NLC_VERSION = "2026.8.2";
 
 const INK = "#3a2d1f", PAPER = "#f3e7d3", TAN = "#a3876a", BROWN = "#7a6248",
   TERRA = "#c65f38", GREEN = "#4d7a52", AMBERC = "#b58a2e", DOT = "#cfb894";
@@ -124,18 +124,21 @@ class NetworkLedgerCard extends HTMLElement {
     try {
       const ent = `sensor.${this._config.wan_monitor}_status`;
       const start = new Date(Date.now() - this._config.history_days * 86400000).toISOString();
-      const res = await this._hass.callApi("GET", `history/period/${start}?filter_entity_id=${ent}&minimal_response&no_attributes`);
-      const pts = (res && res[0]) || [];
+      const res = await this._hass.callWS({
+        type: "history/history_during_period", start_time: start, end_time: new Date().toISOString(),
+        entity_ids: [ent], minimal_response: true, no_attributes: true,
+      });
+      const raw = (res && res[ent]) || [];
+      const pts = raw.map((p) => ({ state: p.s ?? p.state, t: (p.lu ?? p.last_updated) * 1000 })).filter((p) => p.t);
       if (!pts.length) { this._hist = { key: "none" }; return; }
       const now = Date.now();
-      const first = new Date(pts[0].last_changed).getTime();
+      const first = pts[0].t;
       let downMs = 0, lastDownEnd = null, incidents = 0;
       for (let i = 0; i < pts.length; i++) {
         const st = pts[i].state;
-        const t0 = new Date(pts[i].last_changed).getTime();
-        const t1 = i + 1 < pts.length ? new Date(pts[i + 1].last_changed).getTime() : now;
+        const t0 = pts[i].t;
+        const t1 = i + 1 < pts.length ? pts[i + 1].t : now;
         if (st !== "up" && st !== "unavailable" && st !== "unknown") { downMs += t1 - t0; incidents++; lastDownEnd = t1; }
-        if ((st === "unavailable" || st === "unknown") && false) {} /* gaps ignored */
       }
       const spanMs = now - first;
       const windowDays = spanMs / 86400000;
@@ -173,7 +176,7 @@ class NetworkLedgerCard extends HTMLElement {
 
     /* lead figures */
     const uptimeStr = h.uptimePct != null ? (h.uptimePct >= 99.995 ? "100" : h.uptimePct.toFixed(2)) : "—";
-    const windowStr = h.windowDays ? `${Math.round(h.windowDays)}D` : "";
+    const windowStr = h.windowDays ? (h.windowDays >= 1 ? `${Math.round(h.windowDays)}D` : `${Math.max(1, Math.round(h.windowDays * 24))}H`) : "";
     const lostStr = h.uptimePct != null ? (h.downMin < 0.5 ? "0 min lost" : `${Math.round(h.downMin)} min lost`) : "awaiting history";
     const streakStr = h.noIncident && h.windowDays ? `${Math.floor(h.windowDays)}+` : h.sinceDays != null ? `${Math.floor(h.sinceDays)}` : "—";
 

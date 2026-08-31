@@ -54,4 +54,4 @@ profiles:
 
 ## Versioning
 
-Home Assistant CalVer: `YYYY.M.PATCH`. Current: **2026.8.1**.
+Home Assistant CalVer: `YYYY.M.PATCH`. Current: **2026.8.2**.
