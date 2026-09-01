@@ -5,7 +5,7 @@
  * https://github.com/LoneWolf345/network-ledger-card
  */
 
-const NLC_VERSION = "2026.8.5";
+const NLC_VERSION = "2026.8.6";
 
 const INK = "#3a2d1f", PAPER = "#f3e7d3", TAN = "#a3876a", BROWN = "#7a6248",
   TERRA = "#c65f38", GREEN = "#4d7a52", AMBERC = "#b58a2e", DOT = "#cfb894";
@@ -164,6 +164,11 @@ class NetworkLedgerCard extends HTMLElement {
     const hass = this._hass, c = this._config;
     const net = this._st(`sensor.${c.prefix}_status`);
     if (!net) { this.shadowRoot.innerHTML = `<div style="padding:16px;background:${PAPER};color:${INK};border-radius:12px;font-family:sans-serif">Entity not found: sensor.${esc(c.prefix)}_status — check the card's prefix option.</div>`; return; }
+    // Mesh rows (registry) and the uptime figures (history) arrive after first paint; hold
+    // the last full height until then so a page scrolled during load doesn't jump.
+    const loaded = this._nodes !== null && (!c.wan_monitor || this._hist !== null);
+    const reserve = loaded ? 0 : this._reserve();
+    this.style.minHeight = reserve ? reserve + "px" : "";
     const connected = net.state === "connected";
     const down = this._num(`sensor.${c.prefix}_download_speed`);
     const up = this._num(`sensor.${c.prefix}_upload_speed`);
@@ -306,7 +311,14 @@ class NetworkLedgerCard extends HTMLElement {
         this.dispatchEvent(new CustomEvent("hass-more-info", { detail: { entityId: t.dataset.ent }, bubbles: true, composed: true }));
       });
     });
+    if (loaded) requestAnimationFrame(() => this._remember());
   }
+
+  // Height memory (see almanac-weather-card): remember the rendered height per device and
+  // reserve it on the next load until registry + history are back.
+  _hkey() { return "nlc-h:" + (this._config.prefix || ""); }
+  _reserve() { try { const v = parseInt(localStorage.getItem(this._hkey()), 10); return v > 40 ? v : 0; } catch (e) { return 0; } }
+  _remember() { try { const h = Math.round(this.getBoundingClientRect().height); if (h > 40) localStorage.setItem(this._hkey(), String(h)); } catch (e) { /* storage unavailable */ } }
 
   getCardSize() { return 7; }
 }
