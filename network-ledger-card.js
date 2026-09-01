@@ -5,7 +5,7 @@
  * https://github.com/LoneWolf345/network-ledger-card
  */
 
-const NLC_VERSION = "2026.8.4";
+const NLC_VERSION = "2026.8.5";
 
 const INK = "#3a2d1f", PAPER = "#f3e7d3", TAN = "#a3876a", BROWN = "#7a6248",
   TERRA = "#c65f38", GREEN = "#4d7a52", AMBERC = "#b58a2e", DOT = "#cfb894";
@@ -74,6 +74,7 @@ class NetworkLedgerCard extends HTMLElement {
       router_uptime_entity: "sensor.eero_uptime",
       backup_active_entity: "binary_sensor.internet_backup_active",
       mesh_logo: "https://brands.home-assistant.io/_/eero/logo.png",
+      column_rule: false,
       ...config,
     };
     this._sig = "";
@@ -239,7 +240,7 @@ class NetworkLedgerCard extends HTMLElement {
   * { box-sizing: border-box; }
   .wrap { container-type: inline-size; position: relative; }
   /* newspaper mode: a theme can draw a column rule in the gutter to the left (--almanac-column-rule) */
-  .wrap::before { content: ""; position: absolute; top: 0; bottom: 0; left: calc(-1 * var(--almanac-gutter, 16px)); width: 1px; background: var(--almanac-column-rule, transparent); }
+  .wrap::before { content: ""; position: absolute; top: 0; bottom: 0; left: calc(-1 * var(--almanac-gutter, 16px)); width: 1px; background: ${c.column_rule ? "var(--almanac-column-rule, #2b2118)" : "transparent"}; }
   .card { --px: max(0.5px, 0.1923cqw); background: var(--almanac-paper, ${PAPER}); color: ${INK};
     border-radius: var(--ha-card-border-radius, 14px); box-shadow: var(--ha-card-box-shadow, 0 4px 16px rgba(0,0,0,.18));
     overflow: hidden; font-family: Archivo, 'Segoe UI', sans-serif; padding: calc(22*var(--px)) calc(32*var(--px)); }
