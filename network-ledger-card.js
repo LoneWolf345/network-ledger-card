@@ -5,7 +5,7 @@
  * https://github.com/LoneWolf345/network-ledger-card
  */
 
-const NLC_VERSION = "2026.8.6";
+const NLC_VERSION = "2026.8.7";
 
 const INK = "#3a2d1f", PAPER = "#f3e7d3", TAN = "#a3876a", BROWN = "#7a6248",
   TERRA = "#c65f38", GREEN = "#4d7a52", AMBERC = "#b58a2e", DOT = "#cfb894";
@@ -311,7 +311,7 @@ class NetworkLedgerCard extends HTMLElement {
         this.dispatchEvent(new CustomEvent("hass-more-info", { detail: { entityId: t.dataset.ent }, bubbles: true, composed: true }));
       });
     });
-    if (loaded) requestAnimationFrame(() => this._remember());
+    if (loaded) setTimeout(() => this._remember(), 60);
   }
 
   // Height memory (see almanac-weather-card): remember the rendered height per device and
