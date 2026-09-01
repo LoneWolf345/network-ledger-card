@@ -5,7 +5,7 @@
  * https://github.com/LoneWolf345/network-ledger-card
  */
 
-const NLC_VERSION = "2026.8.7";
+const NLC_VERSION = "2026.8.8";
 
 const INK = "#3a2d1f", PAPER = "#f3e7d3", TAN = "#a3876a", BROWN = "#7a6248",
   TERRA = "#c65f38", GREEN = "#4d7a52", AMBERC = "#b58a2e", DOT = "#cfb894";
@@ -169,6 +169,7 @@ class NetworkLedgerCard extends HTMLElement {
     const loaded = this._nodes !== null && (!c.wan_monitor || this._hist !== null);
     const reserve = loaded ? 0 : this._reserve();
     this.style.minHeight = reserve ? reserve + "px" : "";
+    this._pin();
     const connected = net.state === "connected";
     const down = this._num(`sensor.${c.prefix}_download_speed`);
     const up = this._num(`sensor.${c.prefix}_upload_speed`);
@@ -311,8 +312,15 @@ class NetworkLedgerCard extends HTMLElement {
         this.dispatchEvent(new CustomEvent("hass-more-info", { detail: { entityId: t.dataset.ent }, bubbles: true, composed: true }));
       });
     });
+    this._unpin(reserve);
     if (loaded) setTimeout(() => this._remember(), 60);
   }
+
+  // WebKit clamps the scroll position the instant a card's old content is removed for a
+  // re-render (before the new content is laid out) — on a phone at the bottom of the page
+  // that scrolls it up by the card's height. Pin the host at its current height across the swap.
+  _pin() { try { const h = Math.round(this.getBoundingClientRect().height); if (h > 0) this.style.minHeight = Math.max(h, parseFloat(this.style.minHeight) || 0) + "px"; } catch (e) { /* not in a document */ } }
+  _unpin(reserve) { setTimeout(() => { this.style.minHeight = reserve ? reserve + "px" : ""; }, 0); }
 
   // Height memory (see almanac-weather-card): remember the rendered height per device and
   // reserve it on the next load until registry + history are back.
