@@ -59,6 +59,15 @@ profiles:
 | `backup_active_entity` | `binary_sensor.internet_backup_active` | LTE-backup-active binary sensor |
 | `mesh_logo` | eero brand logo | Masthead-right image; set `""` to hide it |
 
+## Theming hooks (newspaper mode)
+
+| Variable | Default | Effect |
+|---|---|---|
+| `--almanac-paper` | `#f3e7d3` | Card background — set `transparent` to let a paper-toned page show through |
+| `--almanac-column-rule` | `transparent` | Color of a 1px vertical column rule in the gutter to the card's left (`--almanac-gutter`, default 16px) |
+
+Pairs with the [Almanac Weather Card](https://github.com/LoneWolf345/almanac-weather-card) on a shared newspaper-style dashboard.
+
 ## Versioning
 
-Home Assistant CalVer: `YYYY.M.PATCH`. Current: **2026.8.3**.
+Home Assistant CalVer: `YYYY.M.PATCH`. Current: **2026.8.4**.
